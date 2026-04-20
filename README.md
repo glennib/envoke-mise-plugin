@@ -19,6 +19,19 @@ If envoke (and any tools it calls, like hemli) are managed by mise, set
 
 ## Installation
 
+Declare the plugin in your project's `mise.toml` so teammates pick up the same
+version automatically (see the [mise configuration reference][mise-plugins-config]):
+
+```toml
+[plugins]
+envoke = "https://github.com/glennib/envoke-env#v1.0.0"
+```
+
+The `#<ref>` suffix pins to a tag, branch, or commit. Omit it to track the
+default branch.
+
+Alternatively, install imperatively (one-off, not shared with the project):
+
 ```bash
 mise plugin install envoke https://github.com/glennib/envoke-env
 ```
@@ -28,6 +41,8 @@ For local development:
 ```bash
 mise plugin link envoke /path/to/envoke-env
 ```
+
+[mise-plugins-config]: https://mise.jdx.dev/configuration.html
 
 ## Usage
 
@@ -92,6 +107,7 @@ _.envoke = { config = "envoke.yaml", environment_file = ".envoke-env", tools = t
 |---|---|---|---|
 | `environment_file` | string | `".envoke-env"` | Path to the file containing environment name, tags, and overrides. |
 | `config` | string | `"envoke.yaml"` | Path to the envoke configuration file. |
+| `fallback_environment` | string | -- | Environment name used when `environment_file` is missing. The file wins when both are defined; no tags/overrides are applied in fallback mode. |
 | `watch_files` | string or array | -- | Additional files to watch for cache invalidation. |
 | `tools` | bool | `false` | Mise-level option. Set to `true` when envoke and its dependencies are mise-managed tools. |
 

@@ -70,7 +70,7 @@ Use `log.debug` / `log.info` calls in the hook and run mise with `MISE_DEBUG=1` 
 
 Treat this file as living documentation. When you make changes that would invalidate anything above, update this file in the same change. Specifically:
 
-1. **Hook contract or option surface changes** — if you add/rename/remove a plugin option, change `.envoke-env` syntax, change the `envoke` invocation, or add a new `PLUGIN:` hook, update the corresponding Architecture subsection and the option table.
+1. **Hook contract or option surface changes** — if you add/rename/remove a plugin option, change `.envoke-env` syntax, change the `envoke` invocation, or add a new `PLUGIN:` hook, update the corresponding Architecture subsection and the option table. **Also update `README.md`** — its Installation, Usage, Configuration, and options table are user-facing and must stay in sync with this file.
 2. **New Lua module use** — if a hook starts requiring a new mise-provided module, add it to the "Available Lua modules" list.
 3. **Tooling changes** — if `mise.toml` gains/loses a tool or task, or `hk.pkl` gains/loses a linter, update the Commands section.
 4. **Lua runtime bump** — if `.luarc.json` moves off Lua 5.1, update the Code style note.
