@@ -71,6 +71,14 @@ override:docker
 These are passed as `--tag` and `--override` arguments to envoke.
 Blank lines and lines starting with `#` are ignored.
 
+### Missing files
+
+If either `.envoke-env` or `envoke.yaml` is missing, the plugin logs a warning
+and injects no variables instead of failing mise activation. Both paths are
+listed in `watch_files`; once the missing file exists the plugin resumes on
+the next shell activation (a fresh shell is sometimes needed if mise has a
+cached empty result).
+
 ## Configuration
 
 Options are set in the `mise.toml` plugin directive:

@@ -17,11 +17,28 @@ function PLUGIN:MiseEnv(ctx)
     end
 
     local config = options.config or "envoke.yaml"
-    if not file.exists(config) then
-        error("[envoke] Config file not found: " .. config)
+    local env_file = options.environment_file or ".envoke-env"
+
+    -- Watch both files unconditionally so mise picks them up once they appear.
+    local watch_files = build_watch_files(options, config, env_file)
+
+    if not file.exists(env_file) then
+        log.warn(
+            "[envoke] environment file not found: "
+                .. env_file
+                .. " — skipping (create it with `echo <env> > "
+                .. env_file
+                .. "` to activate)"
+        )
+        return { env = {}, cacheable = true, watch_files = watch_files }
     end
 
-    local env_file_parsed = parse_env_file(options)
+    if not file.exists(config) then
+        log.warn("[envoke] config file not found: " .. config .. " — skipping (create it to activate)")
+        return { env = {}, cacheable = true, watch_files = watch_files }
+    end
+
+    local env_file_parsed = parse_env_file(env_file)
 
     local command = "envoke"
         .. " "
@@ -72,8 +89,6 @@ function PLUGIN:MiseEnv(ctx)
         table.insert(env_vars, { key = key, value = value })
     end
 
-    local watch_files = build_watch_files(options, config)
-
     log.info("Loaded " .. #env_vars .. " variables from envoke (" .. env_file_parsed.environment .. ")")
 
     return {
@@ -92,17 +107,13 @@ end
 ---     override:<name>  — passed as --override to envoke
 ---     # comments and blank lines are ignored
 ---
---- @param options table Plugin options
+--- Caller must ensure `env_file` exists.
+---
+--- @param env_file string Path to the environment file
 --- @return {environment: string, tags: string[], overrides: string[]}
-function parse_env_file(options)
+function parse_env_file(env_file)
     local tags = {}
     local overrides = {}
-
-    local env_file = options.environment_file or ".envoke-env"
-
-    if not file.exists(env_file) then
-        error("[envoke] Environment file not found: " .. env_file .. "\nSet one with: echo local > " .. env_file)
-    end
 
     local content = strings.trim_space(file.read(env_file))
     if content == "" then
@@ -139,16 +150,14 @@ function parse_env_file(options)
 end
 
 --- Build the list of files to watch for cache invalidation.
+--- Includes config and env_file unconditionally (even when missing) so mise picks them up
+--- once they appear.
 --- @param options table Plugin options
 --- @param config string Path to envoke config file
+--- @param env_file string Path to the environment file
 --- @return string[]
-function build_watch_files(options, config)
-    local watch = { config }
-
-    local env_file = options.environment_file or ".envoke-env"
-    if file.exists(env_file) then
-        table.insert(watch, env_file)
-    end
+function build_watch_files(options, config, env_file)
+    local watch = { config, env_file }
 
     if options.watch_files then
         local extra = to_list(options.watch_files)
