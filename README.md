@@ -86,13 +86,31 @@ override:docker
 These are passed as `--tag` and `--override` arguments to envoke.
 Blank lines and lines starting with `#` are ignored.
 
-### Missing files
+### Graceful failure
 
-If either `.envoke-env` or `envoke.yaml` is missing, the plugin logs a warning
-and injects no variables instead of failing mise activation. Both paths are
-listed in `watch_files`; once the missing file exists the plugin resumes on
-the next shell activation (a fresh shell is sometimes needed if mise has a
-cached empty result).
+The plugin never aborts shell activation. Any problem it encounters is logged
+as a warning on stderr and results in no injected variables; subsequent shell
+init (prompt, other mise hooks) runs unaffected.
+
+Covered cases:
+
+- **Missing `.envoke-env` or `envoke.yaml`.** Both paths are in `watch_files`,
+  so creating the missing file invalidates the cache and the plugin resumes on
+  the next shell activation.
+- **Malformed `.envoke-env`** (empty, or no environment name on the first
+  line). Same recovery path — fix the file and the watched-file invalidation
+  picks it up.
+- **`envoke` binary missing, too old, or exits non-zero.** Most commonly this
+  is a version mismatch — the plugin requires `envoke >= 2.0.0`. The warning
+  includes envoke's own stderr plus a hint to run `envoke --version` and
+  update. These failures are *not* cached (no watched file tracks the binary),
+  so the next shell activation retries automatically once the binary is
+  fixed.
+- **`envoke` returns non-JSON output.** Also not cached; next activation
+  retries.
+
+A fresh shell is sometimes needed after fixing a watched file if mise still
+holds a cached result.
 
 ## Configuration
 

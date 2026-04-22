@@ -20,7 +20,18 @@ function PLUGIN:MiseEnv(ctx)
 
     local env_descriptor
     if file.exists(env_file) then
-        env_descriptor = parse_env_file(env_file)
+        local ok, parsed_or_err = pcall(parse_env_file, env_file)
+        if not ok then
+            log.warn(
+                "[envoke] Failed to parse "
+                    .. env_file
+                    .. ": "
+                    .. tostring(parsed_or_err)
+                    .. " — skipping (fix the file to activate)"
+            )
+            return { env = {}, cacheable = true, watch_files = watch_files }
+        end
+        env_descriptor = parsed_or_err
     elseif fallback_environment and fallback_environment ~= "" then
         log.debug("[envoke] " .. env_file .. " not found; using fallback_environment = " .. fallback_environment)
         env_descriptor = { environment = fallback_environment, tags = {}, overrides = {} }
@@ -59,27 +70,35 @@ function PLUGIN:MiseEnv(ctx)
 
     local ok, output = pcall(cmd.exec, command)
     if not ok then
-        error(
-            "[envoke] Failed to run envoke. Ensure envoke is installed"
-                .. " and 'tools = true' is set in your mise.toml.\n"
+        log.warn(
+            "[envoke] Failed to run envoke — skipping.\n"
                 .. "Command: "
                 .. command
                 .. "\n"
                 .. "Error: "
                 .. tostring(output)
+                .. "\n"
+                .. "envoke >= 2.0.0 is required — check 'envoke --version' and update via"
+                .. " 'mise up envoke' or your package manager."
+                .. " If envoke is mise-managed, set 'tools = true' on the plugin directive."
         )
+        -- cacheable = false: no watched file reflects "envoke binary upgraded", so caching
+        -- an empty env here would persist even after the user fixes it.
+        return { env = {}, cacheable = false, watch_files = watch_files }
     end
 
     local ok2, env_map = pcall(json.decode, output)
     if not ok2 then
-        error(
-            "[envoke] Failed to parse envoke JSON output.\n"
+        log.warn(
+            "[envoke] Failed to parse envoke JSON output — skipping.\n"
                 .. "Error: "
                 .. tostring(env_map)
                 .. "\n"
                 .. "Output: "
                 .. output:sub(1, 200)
         )
+        -- cacheable = false: same reasoning as the exec-failure branch above.
+        return { env = {}, cacheable = false, watch_files = watch_files }
     end
 
     local env_vars = {}
