@@ -5,7 +5,7 @@ PLUGIN = {
     name = "envoke",
 
     --- Plugin version (required)
-    version = "0.1.0",
+    version = "2.0.0",
 
     --- Plugin description (optional)
     description = "Load environment variables dynamically from envoke",

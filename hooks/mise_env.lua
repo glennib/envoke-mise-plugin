@@ -11,11 +11,6 @@ local strings = require("strings")
 function PLUGIN:MiseEnv(ctx)
     local options = ctx.options or {}
 
-    local template_path = file.join_path(RUNTIME.pluginDirPath, "templates", "env.json.j2")
-    if not file.exists(template_path) then
-        error("[envoke] JSON template not found at: " .. template_path)
-    end
-
     local config = options.config or "envoke.yaml"
     local env_file = options.environment_file or ".envoke-env"
     local fallback_environment = options.fallback_environment
@@ -45,13 +40,11 @@ function PLUGIN:MiseEnv(ctx)
         return { env = {}, cacheable = true, watch_files = watch_files }
     end
 
-    local command = "envoke"
-        .. " "
+    local command = "envoke render "
         .. shell_quote(env_descriptor.environment)
-        .. " --template "
-        .. shell_quote(template_path)
         .. " --config "
         .. shell_quote(config)
+        .. " --format json"
         .. " --quiet"
 
     for _, tag in ipairs(env_descriptor.tags) do

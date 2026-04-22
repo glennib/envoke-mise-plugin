@@ -12,7 +12,7 @@ No plaintext secrets are written to disk.
 ## Prerequisites
 
 - [mise](https://mise.jdx.dev) >= 2025.1.0
-- [envoke](https://github.com/glennib/envoke) >= 1.9.0
+- [envoke](https://github.com/glennib/envoke) >= 2.0.0
 
 If envoke (and any tools it calls, like hemli) are managed by mise, set
 `tools = true` on the plugin directive so their bin paths are available.
@@ -24,7 +24,7 @@ version automatically (see the [mise configuration reference][mise-plugins-confi
 
 ```toml
 [plugins]
-envoke = "https://github.com/glennib/envoke-env#v1.0.0"
+envoke = "https://github.com/glennib/envoke-env#v2.0.0"
 ```
 
 The `#<ref>` suffix pins to a tag, branch, or commit. Omit it to track the
@@ -60,7 +60,7 @@ local
 ```
 
 That's it. When mise activates, the plugin reads `.envoke-env`, runs
-`envoke local` against your `envoke.yaml`, and injects the resolved
+`envoke render local` against your `envoke.yaml`, and injects the resolved
 variables into your shell.
 
 ### Switching environments
